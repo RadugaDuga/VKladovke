@@ -1,77 +1,64 @@
 import React from "react";
 import s from "./ProfileDataForm.module.css";
-import { Field, reduxForm } from "redux-form";
+import { useForm } from "react-hook-form";
 
+const ProfileDataForm = ({ onSubmit, profile, error, initialValues, toggleEditMode }) => {
+	const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues: initialValues });
 
-const ProfileDataForm = (props) => {
 	return (
-		<form onSubmit={props.handleSubmit} className={s.form}>
-			{props.error && <div className={s.error}><b>Warning! </b>{props.error.replace("Invalid url format","неверный формат URL")}</div> }
-            <div className={s.info_block}>
-                <p className={s.info_subtitle}>Мое имя:</p> 
-                <Field
-                    component={"input"}
-                    name="fullName"
-                    placeholder={"Ваше имя"}
-                    className={s.input_box}
-                    autoFocus={true}
-			    />
-            </div>
+		<form onSubmit={handleSubmit(onSubmit)} className={s.form}>
+			{error && <div className={s.error}><b>Warning! </b>{error.replace("Invalid url format", "неверный формат URL")}</div>}
+			<div className={s.info_block}>
+				<p className={s.info_subtitle}>Мое имя:</p>
+				<input
+					{...register("fullName", { required: "Введите имя" })}
+					placeholder={"Ваше имя"}
+					className={s.input_box}
+					autoFocus={true}
+				/>
+				{errors.fullName && <span style={{ color: 'red', fontSize: 12 }}>{errors.fullName.message}</span>}
+			</div>
 
-            <div className={s.info_block}>
-                <p className={s.info_subtitle}>Я ищу работу:</p> 
-                <Field
-                    component={"input"}
-                    name="lookingForAJob"
-                    type="checkbox"
-                    className={s.input_box}
+			<div className={s.info_block}>
+				<p className={s.info_subtitle}>Я ищу работу:</p>
+				<input
+					type="checkbox"
+					{...register("lookingForAJob")}
+					className={s.input_box}
+				/>
+			</div>
 
-			    />
-            </div>
+			<div className={s.info_block}>
+				<p className={s.info_subtitle}>Описание моих скиллов:</p>
+				<textarea
+					{...register("lookingForAJobDescription")}
+					placeholder={"Какую работу я ищу"}
+					className={s.input_box}
+				/>
+			</div>
 
-            <div className={s.info_block}>
-                <p className={s.info_subtitle}>Описание моих скиллов:</p> 
-                <Field
-                    component={"textarea"}
-                    name="lookingForAJobDescription"
-                    placeholder={"Какую работу я ищу"}
-                    className={s.input_box}
+			<div className={s.info_block}>
+				<p className={s.info_subtitle}>Обо мне:</p>
+				<textarea
+					{...register("aboutMe")}
+					placeholder={"Расскажите о себе"}
+					className={s.input_box}
+				/>
+			</div>
 
-			    />
-            </div>
-
-            <div className={s.info_block}>
-                <p className={s.info_subtitle}>Обо мне:</p> 
-                <Field
-                    component={"textarea"}
-                    name="aboutMe"
-                    placeholder={"Расскажите о себе"}
-                    className={s.input_box}
-
-			    />
-            </div>
-            
-            
-            
-            
-            {Object.keys(props.profile.contacts).map(key => {
-                return  <div key={key} className={s.info_block}>
-                            <p className={s.info_subtitle}>{key?key[0].toUpperCase() + key.slice(1) : null}:</p>
-                            <Field
-                                component={"input"}
-                                name={"contacts." + key}
-                                className={s.input_box}
-                                
-                            />
-                        </div>
-			})}
-
+			{profile && profile.contacts && Object.keys(profile.contacts).map(key => (
+				<div key={key} className={s.info_block}>
+					<p className={s.info_subtitle}>{key ? key[0].toUpperCase() + key.slice(1) : null}:</p>
+					<input
+						{...register(`contacts.${key}`)}
+						className={s.input_box}
+					/>
+				</div>
+			))}
 
 			<button className={s.button}>Сохранить</button>
 		</form>
 	);
 };
 
-const ProfileDataRedux = reduxForm({ form: "profileData" })(ProfileDataForm);
-
-export default ProfileDataRedux
+export default ProfileDataForm;

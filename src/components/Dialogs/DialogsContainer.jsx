@@ -1,51 +1,24 @@
-import { connect } from "react-redux";
-import { addMessage } from "../../redux/messages-reducer";
+import React from "react";
+import { useSelector, useDispatch } from "react-redux";
 import Dialogs from "./Dialogs";
-import { withAuthRedirect } from '../HOC/withAuthRedirect';
-import { compose } from "redux";
+import { addMessage } from "../../redux/messages-reducer";
 
+const DialogsContainer = () => {
+	const dialogs = useSelector((state) => state.messagesPage.Dialogs);
+	const messages = useSelector((state) => state.messagesPage.Messages);
+	const dispatch = useDispatch();
 
-let mapStateToProps = (state) => {
-	return {
-		Messages: state.messagesPage.Messages,
-		Dialogs: state.messagesPage.Dialogs,
-		newMessageText:state.messagesPage.newMessageText,
-		isAuth:state.auth.isAuth
-	}
+	const onSendMessage = (message) => {
+		dispatch(addMessage(message));
+	};
+
+	return (
+		<Dialogs
+			dialogs={dialogs}
+			messages={messages}
+			onSendMessage={onSendMessage}
+		/>
+	);
 };
 
-
-
-
-	
-export default compose(
-	connect( mapStateToProps, {addMessage}),
-	withAuthRedirect
-)(Dialogs)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//Кампоус заменяет это инкапсуляцией в себя деталей
-
-
-	// let AuthRedirectComponent = withAuthRedirect(Dialogs)
-
-	// const Dialogs_Container = connect( mapStateToProps, 
-	// 	{
-	// 		updateNewMessageText,
-	// 		addMessage
-	// 	}
-	// )(AuthRedirectComponent);
-
-	// export default Dialogs_Container;
+export default DialogsContainer;

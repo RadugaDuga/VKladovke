@@ -1,57 +1,25 @@
-import React , { useRef } from "react";
+import React, { useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import s from "./Dialogs.module.css";
 import DialogItem from "./Dialog/DialogItem";
 import MessageItem from "./Message/Message";
-import { reset ,Field, reduxForm } from "redux-form";
-import { Textarea } from "./../common/FormControl/FormControl";
-import { maxLengthCreator,required} from "./../../redux/Utilites/Validators/Validator";
-import backArrow from "../../images/Messages_Images/back-arrow.svg"
-import src from "../../images/Favicons/messagesFavicon.svg"
+import MessageForm from "./Message/MessageForm";
+import backArrow from "../../images/Messages_Images/back-arrow.svg";
+import src from "../../images/Favicons/messagesFavicon.svg";
+import { addMessage } from "../../redux/messages-reducer";
 
-const MessageForm = (props) => {
-	return (
-		<form className={s.form} onSubmit={props.handleSubmit}>
-			<Field
-				validate={[required, maxLengthBuild]}
-				className={s.text}
-				placeholder={"Напишите сообщение"}
-				component={Textarea}
-				name={"message"}
-			/>
-			
-			<button className={s.addMessage_btn}></button>
-		</form>
-	);
-};
-const ReduxMessageForm = reduxForm({ form: "message" })(MessageForm);
-const maxLengthBuild = maxLengthCreator(100);
+const Dialogs = () => {
+	const dialogs = useSelector((state) => state.messagesPage.Dialogs);
+	const messages = useSelector((state) => state.messagesPage.Messages);
+	const dispatch = useDispatch();
+	const autoScroll = useRef();
 
+	const handleFormSubmit = async (message) => {
+		dispatch(addMessage(message));
+		autoScroll.current.scrollIntoView({ behavior: "smooth" });
+	};
 
-const Dialogs = (props) => {
-
-
-	let MessageElement = props.Messages.map( m => (
-		<MessageItem key={m.id} name={m.name} is_moderator={m.is_moderator} date={m.date} image={m.image} messageText={m.messageText} />
-	));
-	let DialogElement = props.Dialogs.map( d => (
-		<DialogItem key={d.id} id={d.id} name={d.name}  image={d.image} />
-	));
-
-	
-
-	const formSubmitted = async (data, dispatch)=> {
-		await props.addMessage(data.message);
-		dispatch(reset("message"));
-		autoScroll.current.scrollIntoView({ behavior:'smooth'})
-	}
-
-
-	const autoScroll = useRef()
-
-	document.getElementById("favicon").href = src
 	document.title = `Мессенджер`;
-
-
 
 	return (
 		<div className={s.content_wrapper}>
@@ -67,19 +35,32 @@ const Dialogs = (props) => {
 				/>
 				<p className={s.name}> Дарья Амеличева </p>
 			</div>
-
 			<div className={s.dialogs}>
-				{DialogElement}
+				{dialogs.map((d) => (
+					<DialogItem
+						key={d.id}
+						id={d.id}
+						name={d.name}
+						image={d.image}
+					/>
+				))}
 			</div>
-
 			<div className={s.messages}>
-				{MessageElement}
+				{messages.map((m) => (
+					<MessageItem
+						key={m.id}
+						name={m.name}
+						is_moderator={m.is_moderator}
+						date={m.date}
+						image={m.image}
+						messageText={m.messageText}
+					/>
+				))}
 				<div ref={autoScroll}></div>
 			</div>
-
 			<div className={s.textarea_wrapper}>
 				<button className={s.addFiles_btn}></button>
-				<ReduxMessageForm onSubmit={formSubmitted} />
+				<MessageForm onSubmit={handleFormSubmit} />
 				<button className={s.addSmile_btn}></button>
 			</div>
 		</div>

@@ -1,86 +1,41 @@
-import { stopSubmit } from "redux-form";
+import { createSlice } from '@reduxjs/toolkit';
 import { authAPI, profileAPI, securityAPI } from "../API/api";
 
-
-const SET_AUTH_USER_DATA = "auth/SET_AUTH_USER_DATA";
-const SET_AUTH_USER_PHOTO = "auth/SET_AUTH_USER_PHOTO";
-const GET_CAPTCHA_URL_SUCCESS = "auth/GET_CAPTCHA_URL_SUCCESS";
-
-
-
-let initialState = {
+const initialState = {
   id: 0 as number,
-  email: "" as string ,
-  login: "" as string ,
-  isAuth: false as boolean ,
-  authUserPhoto: "" as string ,
-  captchaURL: "" as string 
+  email: "" as string,
+  login: "" as string,
+  isAuth: false as boolean,
+  authUserPhoto: "" as string,
+  captchaURL: "" as string
 };
 
-export const authReducer = (state = initialState,action: any) => {
-  switch (action.type) {
-    case SET_AUTH_USER_DATA:
-      return {
-        ...state,
-        ...action.data,
-      };
-    case SET_AUTH_USER_PHOTO:
-      return {
-        ...state,
-        authUserPhoto: action.photo,
-      };
-    case GET_CAPTCHA_URL_SUCCESS:
-      return {
-        ...state,
-        captchaURL: action.captchaUrl,
-      };
-
-    default:
-      return state;
-  }
-};
-
-type SetAuthUserDataActionPayloadType = {
-  id: number 
-  email: string 
-  login: string 
-  isAuth: boolean 
-};
-type SetAuthUserDataActionType = {
-  type: typeof SET_AUTH_USER_DATA;
-  data: SetAuthUserDataActionPayloadType;
-};
-
-export const setAuthUserData = (id: number ,email: string ,login: string ,isAuth: boolean ): SetAuthUserDataActionType => ({
-  type: SET_AUTH_USER_DATA,
-  data: { id, email, login, isAuth }
+const authSlice = createSlice({
+  name: 'auth',
+  initialState,
+  reducers: {
+    setAuthUserData: (state, action) => {
+      state.id = action.payload.id;
+      state.email = action.payload.email;
+      state.login = action.payload.login;
+      state.isAuth = action.payload.isAuth;
+    },
+    setAuthUserPhoto: (state, action) => {
+      state.authUserPhoto = action.payload;
+    },
+    getCaptchaURLSuccess: (state, action) => {
+      state.captchaURL = action.payload;
+    },
+  },
 });
 
-
-
-
-export const setAuthUserPhoto = (photo: string | null) => ({
-  type: SET_AUTH_USER_PHOTO,
-  photo,
-});
-
-
-type GetCaptchaURLSuccessActionType = {
-	type : typeof GET_CAPTCHA_URL_SUCCESS
-	captchaUrl : string 
-}
-
-export const getCaptchaURLSuccess = (captchaUrl: string): GetCaptchaURLSuccessActionType => ({
-  type: GET_CAPTCHA_URL_SUCCESS,
-  captchaUrl
-});
+export const { setAuthUserData, setAuthUserPhoto, getCaptchaURLSuccess } = authSlice.actions;
 
 export const authMe = () => async (dispatch: any, getState: any) => {
-  //Так как у нас есть промисы - после диспатча он вернет нам этот же then
   let response = await authAPI.getMe();
   if (response.data.resultCode === 0) {
-    let { id, login, email } = response.data.data; // isAuth убран отсюда
-    dispatch(setAuthUserData(id, email, login, true));
+    let { id, login, email } = response.data.data;
+    dispatch(setAuthUserData({ id, email, login, isAuth: true }));
     const authProfile = await profileAPI.getProfile(getState().auth.id);
     dispatch(setAuthUserPhoto(authProfile.data.photos.small));
   }
@@ -93,26 +48,28 @@ export const getCaptchaURL = () => async (dispatch: any) => {
 };
 
 export const login = (email: any, password: any, rememberMe: any, captchaUrl: any) => async (dispatch: any) => {
-    let response = await authAPI.login(email, password, rememberMe, captchaUrl);
-
-    if (response.data.resultCode === 0) {
-      dispatch(authMe());
-    } else {
-      if (response.data.resultCode === 10) {
-        dispatch(getCaptchaURL());
-      }
-      let action = stopSubmit("login", {
-        _error: "Вы ввели неверный логин или пароль",
-      });
-      dispatch(action);
+  let response = await authAPI.login(email, password, rememberMe, captchaUrl);
+  if (response.data.resultCode === 0) {
+    dispatch(authMe());
+  } else {
+    if (response.data.resultCode === 10) {
+      dispatch(getCaptchaURL());
     }
-  };
+    let action = {
+      type: "login/stopSubmit",
+      payload: {
+        _error: "Вы ввели неверный логин или пароль",
+      },
+    };
+    dispatch(action);
+  }
+};
 
 export const logout = () => async (dispatch: any) => {
   let response = await authAPI.logout();
   if (response.data.resultCode === 0) {
-    dispatch(setAuthUserData(0, "", "", false));
+    dispatch(setAuthUserData({ id: 0, email: "", login: "", isAuth: false }));
   }
 };
 
-export default authReducer;
+export default authSlice.reducer;

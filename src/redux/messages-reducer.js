@@ -1,8 +1,7 @@
 import stewardess from "../images/stewardess.png";
+import { createSlice } from '@reduxjs/toolkit';
 
-const ADD_MESSAGE = "messages/ADD_MESSAGE";
-
-let initialState = {
+const initialState = {
 	Messages: [
 		{
 			id: 1,
@@ -321,42 +320,23 @@ let initialState = {
 	],
 };
 
+const messagesSlice = createSlice({
+    name: 'messages',
+    initialState,
+    reducers: {
+        addMessage: (state, action) => {
+            state.Messages.push({
+                id: Math.random(0, 99999999999999999),
+                date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                name: "Георгий",
+                is_moderator: true,
+                image:
+                    "https://sun9-74.userapi.com/s/v1/if1/wnhPf1akAP1IYujDsFmUaeLG7pjkj80kDNOPNdkYWwDGPCOeuTs3pJZot4nlJlLalmLgEuYF.jpg?size=50x0&quality=96&crop=459,0,1006,1006&ava=1",
+                messageText: action.payload,
+            });
+        },
+    },
+});
 
-// Получить текущее время
-
-let today = new Date()
-
-const hours = today.getHours();
-const minutes = today.getMinutes() < 10 ? "0" + today.getMinutes() : "" + today.getMinutes();
-today = `${hours}:${minutes}`;
-
-//=======================
-
-
-export const messagesReducer = (state = initialState, action) => {
-	switch (action.type) {
-		case ADD_MESSAGE:
-			return {
-				...state,
-				Messages: [
-					...state.Messages,
-					{
-						id: Math.random(0, 99999999999999999),
-						date: today,
-						name: "Георгий",
-						is_moderator: true,
-						image:
-							"https://sun9-74.userapi.com/s/v1/if1/wnhPf1akAP1IYujDsFmUaeLG7pjkj80kDNOPNdkYWwDGPCOeuTs3pJZot4nlJlLalmLgEuYF.jpg?size=50x0&quality=96&crop=459,0,1006,1006&ava=1",
-						messageText: action.message,
-					},
-				],
-			};
-
-		default:
-			return state;
-	}
-};
-
-export const addMessage = (message) => ({ type: ADD_MESSAGE, message });
-
-export default messagesReducer;
+export const { addMessage } = messagesSlice.actions;
+export default messagesSlice.reducer;

@@ -1,99 +1,38 @@
-import { connect } from "react-redux";
-import { follow, unfollow, setCurrentPageNum, requestUsers} from "../../redux/users-reducer";
 import React from "react";
+import { useSelector, useDispatch } from "react-redux";
 import Users from "./Users";
-import { getCurrentPageNum, getPageSize, getUsers, getUsersTotalCount, getFollowingProgress } from '../../redux/users-selectors';
-import src from "../../images/Favicons/friendsFavicon.svg"
+import { follow, unfollow, requestUsers } from "../../redux/users-reducer";
 
+const UsersContainer = () => {
+  const users = useSelector(state => state.usersPage.users);
+  const pageSize = useSelector(state => state.usersPage.pageSize);
+  const usersTotalCount = useSelector(state => state.usersPage.usersTotalCount);
+  const currentPageNum = useSelector(state => state.usersPage.currentPageNum);
+  const isFetching = useSelector(state => state.usersPage.isFetching);
+  const followingProgress = useSelector(state => state.usersPage.followingProgress);
+  const dispatch = useDispatch();
 
+  React.useEffect(() => {
+    dispatch(requestUsers(currentPageNum, pageSize));
+  }, [dispatch, currentPageNum, pageSize]);
 
+  const onPageChanged = (pageNumber) => {
+    dispatch(requestUsers(pageNumber, pageSize));
+  };
 
-class UsersContainer extends React.Component {
-	
-	// getUsers - это Thunk 
-	componentDidMount = () => {	
-		this.props.requestUsers(this.props.currentPageNum, this.props.pageSize)
-	}
-
-	onPageChanged = ( currentPageNum ) => {
-		this.props.setCurrentPageNum(currentPageNum)
-		this.props.requestUsers(currentPageNum, this.props.pageSize)
-	};
-
-	render() {
-
-		document.title = `Друзья`;
-		document.getElementById("favicon").href = src ;
-		return <Users {...this.props} onPageChanged ={this.onPageChanged}/>
-		
-	}
-
-}
-
-let mapStateToProps = (state) => {
-	return{
-		users:getUsers(state),
-		pageSize: getPageSize(state),
-		usersTotalCount: getUsersTotalCount(state),
-		currentPageNum: getCurrentPageNum(state),
-		followingProgress: getFollowingProgress(state)
-	}
+  return (
+    <Users
+      users={users}
+      pageSize={pageSize}
+      usersTotalCount={usersTotalCount}
+      currentPageNum={currentPageNum}
+      follow={userId => dispatch(follow(userId))}
+      unfollow={userId => dispatch(unfollow(userId))}
+      onPageChanged={onPageChanged}
+      isFetching={isFetching}
+      followingProgress={followingProgress}
+    />
+  );
 };
 
-
-export default connect(mapStateToProps, {follow,unfollow,setCurrentPageNum,requestUsers})(UsersContainer)
-
-
-
-
-
-
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ==========Так работает диспатч ту пропс внутри коннекта=========
-
-
-// let mapDispatchToProps = (dispatch) => {
-
-	// 	return {
-	// 		unfollow: (userID) => {
-	// 			dispatch(unfollow_AC(userID));
-	// 		},
-	// 		setUsers: (users) => {
-	// 			dispatch(setUsers_AC(users));
-	// 		},
-	// 		setCurrentPageNum: (pageNum) =>{
-	// 			dispatch(setCurrentPageNum_AC(pageNum));
-	// 		},
-	// 		setUsersTotalCount:(totalCount)=>{
-	// 			dispatch(setUsersTotalCount_AC(totalCount))
-	// 		},
-	// 		toggleIsFetching:(isFetching)=>{
-	// 			dispatch(toggleIsFetching_AC(isFetching))
-	// 		}
-	// 	};
-
-//	};
-
-	
-// ================================================================
+export default UsersContainer;

@@ -1,5 +1,6 @@
+import { createSlice } from '@reduxjs/toolkit';
 
-let initialState ={
+const initialState = {
     groupsData: [
         {
             id: 1,
@@ -68,9 +69,12 @@ let initialState ={
     ]
 };
 
-const groupsReducer = (state = initialState, action)=>{
-    return state;
-}
+const groupsSlice = createSlice({
+    name: 'groups',
+    initialState,
+    reducers: {
+        // reducers can be added here if needed in the future
+    },
+});
 
-
-export default groupsReducer;
+export default groupsSlice.reducer;

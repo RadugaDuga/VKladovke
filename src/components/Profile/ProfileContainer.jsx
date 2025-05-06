@@ -1,59 +1,34 @@
 import React from "react";
+import { useSelector, useDispatch } from "react-redux";
 import Profile from "./Profile";
-import { connect } from "react-redux";
-import { getStatus, getUserProfile } from "./../../redux/profile-reducer";
-import { withRouter } from "react-router-dom";
-import { withAuthRedirect } from "../HOC/withAuthRedirect";
-import { compose } from "redux";
+import { getUserProfile, getStatus, updateStatus, savePhoto, saveProfileData } from "../../redux/profile-reducer";
+import { useParams } from "react-router-dom";
 
+const ProfileContainer = () => {
+  const { userId } = useParams();
+  const profile = useSelector(state => state.profilePage.profile);
+  const status = useSelector(state => state.profilePage.status);
+  const authId = useSelector(state => state.auth.id);
+  const dispatch = useDispatch();
 
-const mapStateToProps = (state) => {
-  return {
-    profile: state.profilePage.profile,
-    status: state.profilePage.status,
-    authorizedUserId: state.auth.id,
-    isAuth: state.auth.isAuth,
-  };
+  React.useEffect(() => {
+    const id = userId || authId;
+    if (id) {
+      dispatch(getUserProfile(id));
+      dispatch(getStatus(id));
+    }
+  }, [dispatch, userId, authId]);
+
+  return (
+    <Profile
+      isOwner={!userId}
+      profile={profile}
+      status={status}
+      updateStatus={status => dispatch(updateStatus(status))}
+      savePhoto={photo => dispatch(savePhoto(photo))}
+      saveProfileData={formData => dispatch(saveProfileData(formData))}
+    />
+  );
 };
 
-
-// Hi there 
-class ProfileContainer extends React.PureComponent {
-  //Рефреш нужен для получения пользователя и его данных и он вынесен в функцию т.к повторяется
-
-  refreshProfile() {
-    let userId = this.props.match.params.userId;
-    if (userId !== 0) {
-      userId = this.props.authorizedUserId;
-    }
-    this.props.getUserProfile(userId);
-    this.props.getStatus(userId);
-  }
-
-  componentDidMount() {
-    this.refreshProfile();
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.props.match.params.userId !== prevProps.match.params.userId) {
-      this.refreshProfile();
-    }
-  }
-
-  render() {
-    return (
-      <Profile
-        isOwner={!this.props.match.params.userId}
-        profile={this.props.profile}
-        status={this.props.status}
-      />
-    );
-  }
-}
-
-
-export default compose(
-  connect(mapStateToProps, { getUserProfile, getStatus }),
-  withRouter,
-  withAuthRedirect
-)(ProfileContainer);
+export default ProfileContainer;

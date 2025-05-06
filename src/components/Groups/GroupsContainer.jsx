@@ -1,17 +1,10 @@
-
-
-import { connect } from "react-redux";
+import React from "react";
+import { useSelector } from "react-redux";
 import Groups from "./Groups";
 
-
-
-
-let mapStateToProps = (state) => {
-	return {
-		groupsData: state.groupsPage.groupsData	
-	};
+const GroupsContainer = () => {
+  const groupsData = useSelector(state => state.groupsPage.groupsData);
+  return <Groups groupsData={groupsData} />;
 };
-
-const GroupsContainer = connect(mapStateToProps)(Groups);
 
 export default GroupsContainer;

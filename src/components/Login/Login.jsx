@@ -1,84 +1,18 @@
 import React from "react";
 import s from "./Login.module.css";
 import importedS from "../common/FormControl/FormControl.module.css";
-import { Field, reduxForm } from "redux-form";
-import { Input } from "../common/FormControl/FormControl";
-import {maxLengthCreator, required} from "./../../redux/Utilites/Validators/Validator";
+import { useForm } from "react-hook-form";
 import { connect, useSelector } from "react-redux";
 import { login } from "../../redux/auth-reducer";
 import { Redirect } from "react-router";
 import { compose } from "redux";
 
-
-
-
-const maxLoginLength = maxLengthCreator(20);
-const maxPasswordLength = maxLengthCreator(16);
-
-const LoginForm = (props) => {
-	const captcha = useSelector((state) => state.auth.captchaURL);
-
-	return (
-		<form className={s.form} onSubmit={props.handleSubmit}>
-			<span>
-				<Field
-					validate={[required, maxLoginLength]}
-					className={s.field}
-					placeholder={"Ваше имя"}
-					component={Input}
-					name={"email"}
-				/>
-			</span>
-			<span>
-				<Field
-					validate={[required, maxPasswordLength]}
-					name={"password"}
-					className={s.field}
-					placeholder={"Ваш пароль"}
-					component={Input}
-					type="password"
-				/>
-			</span>
-
-			{captcha && (
-				<>
-					<img src={captcha} alt="^__^" className={s.captcha} />
-					<Field
-						validate={[required]}
-						className={s.field}
-						component={"input"}
-						name={"captcha"}
-					/>
-				</>
-			)}
-
-			{props.error && (
-				<div className={importedS.form_summary_error}>{props.error}</div>
-			)}
-
-			<div className={s.buttons_wrapper}>
-				<span>
-					<button className={s.submit_btn}>Войти</button>
-				</span>
-
-				<span className={s.checkbox}>
-					<Field name={"rememberMe"} type={"checkbox"} component={"input"} />
-					<p style={{ marginLeft: 6 }}>Запомнить меня</p>
-				</span>
-			</div>
-		</form>
-	);
-};
-
-// compose(
-//     ReduxForm({form:'login'})
-// )(LoginForm)
-
-const ReduxLoginForm = reduxForm({ form: "login" })(LoginForm);
-
 const Login = (props) => {
-	const onSubmit = (formData) => {
-		props.login(formData.email, formData.password, formData.rememberMe, formData.captcha);
+	const captcha = useSelector((state) => state.auth.captchaURL);
+	const { register, handleSubmit, formState: { errors } } = useForm();
+
+	const onSubmit = (data) => {
+		props.login(data.email, data.password, data.rememberMe, data.captcha);
 	};
 
 	if (props.isAuth) {
@@ -92,7 +26,53 @@ const Login = (props) => {
 				<h3 className={s.h3}>Моментальная регистрация</h3>
 			</div>
 
-			<ReduxLoginForm onSubmit={onSubmit} />
+			<form className={s.form} onSubmit={handleSubmit(onSubmit)}>
+				<span>
+					<input
+						{...register("email", { required: "Обязательное поле", maxLength: { value: 20, message: "Максимум 20 символов" } })}
+						className={s.field}
+						placeholder={"Ваше имя"}
+					/>
+					{errors.email && <span className={importedS.form_summary_error}>{errors.email.message}</span>}
+				</span>
+				<span>
+					<input
+						{...register("password", { required: "Обязательное поле", maxLength: { value: 16, message: "Максимум 16 символов" } })}
+						name={"password"}
+						className={s.field}
+						placeholder={"Ваш пароль"}
+						type="password"
+					/>
+					{errors.password && <span className={importedS.form_summary_error}>{errors.password.message}</span>}
+				</span>
+
+				{captcha && (
+					<>
+						<img src={captcha} alt="^__^" className={s.captcha} />
+						<input
+							{...register("captcha", { required: "Введите капчу" })}
+							className={s.field}
+							placeholder="Введите капчу"
+						/>
+						{errors.captcha && <span className={importedS.form_summary_error}>{errors.captcha.message}</span>}
+					</>
+				)}
+
+				{props.error && (
+					<div className={importedS.form_summary_error}>{props.error}</div>
+				)}
+
+				<div className={s.buttons_wrapper}>
+					<span>
+						<button className={s.submit_btn} type="submit">Войти</button>
+					</span>
+
+					<span className={s.checkbox}>
+						<input type="checkbox" {...register("rememberMe")} />
+						<p style={{ marginLeft: 6 }}>Запомнить меня</p>
+					</span>
+				</div>
+			</form>
 		</div>
 	);
 };

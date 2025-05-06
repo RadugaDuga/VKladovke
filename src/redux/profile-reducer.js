@@ -1,17 +1,14 @@
+import { createSlice } from '@reduxjs/toolkit';
 import { profileAPI } from "../API/api";
-import { stopSubmit } from "redux-form";
 import { authMe } from "./auth-reducer";
 
-const ADD_POST = "profile/ADD_POST";
-const UPDATE_NEW_POST_TEXT = "profile/UPDATE_NEW_POST_TEXT";
-const DELETE_POST = "profile/DELETE_POST";
-const SET_USER_PROFILE = "profile/SET_USER_PROFILE";
-const SET_STATUS = "profile/SET_STATUS";
-const SAVE_PHOTO_SUCCESS = "profile/SAVE_PHOTO_SUCCESS";
-const SAVE_PROFILE_DATA_SUCCESS = "profile/SAVE_PROFILE_DATA_SUCCESS";
-const TOGGLE_LIKE_POST = "profile/TOGGLE_LIKE_POST";
+let today = new Date();
+const dd = today.getDate() < 10 ? "0" + today.getDate() : today.getDate();
+const yyyy = today.getFullYear();
+const mm = today.toLocaleString("default", { month: "short" });
+today = `${dd} ${mm} ${yyyy}`;
 
-let initialState = {
+const initialState = {
 	postsData: [
 		{
 			postId: 1,
@@ -92,108 +89,63 @@ let initialState = {
 	status: "",
 };
 
-let today = new Date();
-const dd = today.getDate() < 10 ? "0" + today.getDate() : today.getDate();
-const yyyy = today.getFullYear();
-const mm = today.toLocaleString("default", { month: "short" });
-today = `${dd} ${mm} ${yyyy}`;
-
-const profileReducer = (state = initialState, action) => {
-	switch (action.type) {
-		case ADD_POST:
-			return {
-				...state,
-				postsData: [
-					{
-						postId: Math.random(2, 99999999999999999),
-						name: "Георгий Букиа",
-						image: state.profile.photos.large,
-						text: action.postText,
-						likes_count: Math.floor(Math.random() * 20),
-						comments_count: Math.floor(Math.random() * 10),
-						repost_count: Math.floor(Math.random() * 98),
-						views_count: Math.floor(Math.random() * 98),
-						date: today,
-					},
-					...state.postsData,
-				],
-				newPostText: "",
-			};
-
-		case UPDATE_NEW_POST_TEXT:
-			return {
-				...state,
-				newPostText: action.text,
-			};
-
-		case DELETE_POST: {
-			return {
-				...state,
-				postsData: state.postsData.filter((p) => p.postId !== action.postId),
-			};
-		}
-		case TOGGLE_LIKE_POST: {
-			return {
-				...state,
-				postsData: state.postsData.map( post => {
-					if (post.postId === action.postId) {
-						if (post.liked){
-							return {...post,liked:false,likes_count:-- post.likes_count }
-						}else {
-							return {...post, liked:true, likes_count:++ post.likes_count   }
-						}
+const profileSlice = createSlice({
+	name: 'profile',
+	initialState,
+	reducers: {
+		addPost: (state, action) => {
+			state.postsData.unshift({
+				postId: Math.random(2, 99999999999999999),
+				name: "Георгий Букиа",
+				image: state.profile.photos.large,
+				text: action.payload,
+				likes_count: Math.floor(Math.random() * 20),
+				comments_count: Math.floor(Math.random() * 10),
+				repost_count: Math.floor(Math.random() * 98),
+				views_count: Math.floor(Math.random() * 98),
+				date: today,
+			});
+		},
+		deletePost: (state, action) => {
+			state.postsData = state.postsData.filter((p) => p.postId !== action.payload);
+		},
+		toggleLikePost: (state, action) => {
+			state.postsData = state.postsData.map(post => {
+				if (post.postId === action.payload) {
+					if (post.liked) {
+						return { ...post, liked: false, likes_count: --post.likes_count };
+					} else {
+						return { ...post, liked: true, likes_count: ++post.likes_count };
 					}
-					return post
-				})
-			}
-		}
-
-		case SET_USER_PROFILE: {
-			return { ...state, profile: action.profile };
-		}
-
-		case SET_STATUS: {
-			return { ...state, status: action.status };
-		}
-
-		case SAVE_PHOTO_SUCCESS: {
-			return { ...state, profile: { ...state.profile, photos: action.photos } };
-		}
-
-		case SAVE_PROFILE_DATA_SUCCESS: {
-			return { ...state, profile: { ...state.profile, ...action.profile } };
-		}
-
-		default:
-			return state;
-	}
-};
-
-// Экщн креэйторы
-export const addPost = (postText) => ({ type: ADD_POST, postText });
-export const deletePost = (postId) => ({ type: DELETE_POST, postId });
-export const toggleLikePost = (postId) => ({ type: TOGGLE_LIKE_POST, postId });
-export const updateNewPostText = (text) => ({
-	type: UPDATE_NEW_POST_TEXT,
-	text: text,
+				}
+				return post;
+			});
+		},
+		setUserProfile: (state, action) => {
+			state.profile = action.payload;
+		},
+		setStatus: (state, action) => {
+			state.status = action.payload;
+		},
+		savePhotoSuccess: (state, action) => {
+			state.profile.photos = action.payload;
+		},
+		saveProfileDataSuccess: (state, action) => {
+			state.profile = { ...state.profile, ...action.payload };
+		},
+	},
 });
 
-export const setUserProfile = (profile) => ({
-	type: SET_USER_PROFILE,
-	profile,
-});
+export const {
+	addPost,
+	deletePost,
+	toggleLikePost,
+	setUserProfile,
+	setStatus,
+	savePhotoSuccess,
+	saveProfileDataSuccess,
+} = profileSlice.actions;
 
-export const setStatus = (status) => ({ type: SET_STATUS, status });
-export const savePhotoSuccess = (photos) => ({
-	type: SAVE_PHOTO_SUCCESS,
-	photos: photos,
-});
-export const saveProfileDataSuccess = (formData) => ({
-	type: SAVE_PROFILE_DATA_SUCCESS,
-	formData,
-});
-
-//Санки
 export const getUserProfile = (userId) => async (dispatch) => {
 	let response = await profileAPI.getProfile(userId);
 	dispatch(setUserProfile(response.data));
@@ -217,7 +169,6 @@ export const saveProfileData = (formData) => async (dispatch, getState) => {
 	if (response.data.resultCode === 0) {
 		dispatch(getUserProfile(getState().auth.id));
 	} else {
-		dispatch(stopSubmit("profileData", { _error: response.data.messages[0] }));
 		return Promise.reject(response.data.messages[0]);
 	}
 };
@@ -229,4 +180,4 @@ export const updateStatus = (status) => async (dispatch) => {
 	}
 };
 
-export default profileReducer;
+export default profileSlice.reducer;
