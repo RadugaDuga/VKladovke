@@ -1,100 +1,70 @@
-import  axios  from "axios";
+import axios from "axios";
 
-// Инстанс 
-const instanse = axios.create({
-    baseURL:"https://social-network.samuraijs.com/api/1.0/",
-    withCredentials:true,
-    headers:{
+// axios instance
+const instance = axios.create({
+    baseURL: "https://social-network.samuraijs.com/api/1.0/",
+    withCredentials: true,
+    headers: {
         "API-KEY": "57002d0a-9032-4b4a-bba7-bc2cabbf5e08"
     }
-})
+});
 
-
-
-
-// обьект с методами для работы с пользователями
+// Users API
 export const usersAPI = {
-
     getUsersData(currentPageNum = 1, pageSize = 8) {
-        return instanse.get(`users?page=${currentPageNum}&count=${pageSize}`)
-        .then( response => response.data )
+        return instance.get(`users`, {
+            params: { page: currentPageNum, count: pageSize }
+        }).then(response => response.data);
     },
-
-    follow(userID){
-        return instanse.post(`follow/${userID}`)
+    follow(userID) {
+        return instance.post(`follow/${userID}`);
     },
-
-    unfollow(userID){
-        return instanse.delete(`follow/${userID}`)
+    unfollow(userID) {
+        return instance.delete(`follow/${userID}`);
     },
+};
 
-
-}
-
-
-// обьект с методами для работы с капчей
-
+// Security API
 export const securityAPI = {
-
-    getCaptchaURL(){
-        return instanse.get(`security/get-captcha-url`);
+    getCaptchaURL() {
+        return instance.get(`security/get-captcha-url`);
     }
+};
 
-}
-
-
-
-
-
-// обьект с методами для работы с авторизацией
+// Auth API
 export const authAPI = {
-
-    getMe(){
-        return instanse.get(`auth/me`);
+    getMe() {
+        return instance.get(`auth/me`);
     },
-
-    login(email, password, rememberMe = false, captcha = null){
-        return instanse.post(`auth/login`, {email, password, rememberMe, captcha});
+    login(email, password, rememberMe = false, captcha = null) {
+        return instance.post(`auth/login`, { email, password, rememberMe, captcha });
     },
-
-    logout(){
-        return instanse.delete(`auth/login`);
+    logout() {
+        return instance.delete(`auth/login`);
     }
+};
 
-}
-
-
-
-
-// обьект с методами для работы с профилем
+// Profile API
 export const profileAPI = {
-
-    getProfile(userId){
-        return instanse.get('profile/' + userId)
+    getProfile(userId) {
+        return instance.get(`profile/${userId}`);
     },
-
-    getStatus(userId){
-        return instanse.get(`profile/status/` + userId)
+    getStatus(userId) {
+        return instance.get(`profile/status/${userId}`);
     },
-
-    updateStatus(status){
-        return instanse.put(`profile/status/`, {status:status})
+    updateStatus(status) {
+        return instance.put(`profile/status/`, { status });
     },
-
-    savePhoto(photo){
+    savePhoto(photo) {
         const formData = new FormData();
-        formData.append("image", photo)
-        return instanse.put(`/profile/photo`, formData,{
-            headers:{
+        formData.append("image", photo);
+        return instance.put(`/profile/photo`, formData, {
+            headers: {
                 "Content-Type": "multipart/form-data"
             }
-        })
+        });
     },
-
-    saveProfileData(profileFormData){
-        return instanse.put(`/profile`, profileFormData)
+    saveProfileData(profileFormData) {
+        return instance.put(`/profile`, profileFormData);
     }
-
-   
-
-}
+};
