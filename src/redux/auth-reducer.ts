@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { authAPI, profileAPI, securityAPI } from "../API/api";
 
 // Типизация для Auth State
@@ -26,19 +26,19 @@ const authSlice = createSlice({
 	name: "auth",
 	initialState,
 	reducers: {
-		setAuthUserData: (state, action) => {
+		setAuthUserData: (state, action: PayloadAction<{ id: number; email: string; login: string; isAuth: boolean }>) => {
 			state.id = action.payload.id;
 			state.email = action.payload.email;
 			state.login = action.payload.login;
 			state.isAuth = action.payload.isAuth;
 		},
-		setAuthUserPhoto: (state, action) => {
+		setAuthUserPhoto: (state, action: PayloadAction<string>) => {
 			state.authUserPhoto = action.payload;
 		},
-		getCaptchaURLSuccess: (state, action) => {
+		getCaptchaURLSuccess: (state, action: PayloadAction<string>) => {
 			state.captchaURL = action.payload;
 		},
-		setAuthError: (state, action) => {
+		setAuthError: (state, action: PayloadAction<string>) => {
 			state.error = action.payload;
 		},
 		clearAuthError: (state) => {
@@ -54,6 +54,8 @@ export const {
 	setAuthError,
 	clearAuthError,
 } = authSlice.actions;
+
+import type { AppDispatch, RootState } from "./store"; // Импортируйте RootState если есть
 
 export const authMe = () => async (dispatch: any, getState: any) => {
 	const response = await authAPI.getMe();
