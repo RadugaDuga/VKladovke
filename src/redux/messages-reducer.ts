@@ -1,5 +1,5 @@
 import stewardess from "../images/stewardess.png";
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export interface Message {
 	id: number;
@@ -16,7 +16,7 @@ export interface Dialog {
 	image: string;
 }
 
-interface MessagesState {
+export interface MessagesState {
 	Messages: Message[];
 	Dialogs: Dialog[];
 }
